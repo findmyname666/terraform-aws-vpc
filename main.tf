@@ -305,6 +305,16 @@ resource "aws_route" "private_to_tgw" {
   ]
 }
 
+resource "aws_route" "custom_routes_to_tgw" {
+  for_each = var.custom_routes_to_tgw
+
+  destination_cidr_block     = each.value.destination_cidr_block
+  destination_prefix_list_id = each.value.destination_prefix_list_id
+
+  route_table_id     = try(aws_route_table.private[each.key].id, aws_route_table.public[each.key].id)
+  transit_gateway_id = each.value.transit_gateway_id
+}
+
 # Route: IPv6 routes from private subnets to the Transit Gateway (if configured in var.transit_gateway_ipv6_routes)
 resource "aws_route" "ipv6_private_to_tgw" {
   for_each = toset(local.ipv6_private_subnet_key_names_tgw_routed)

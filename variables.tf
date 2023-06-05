@@ -250,6 +250,16 @@ EOF
   }
 }
 
+variable "custom_routes_to_tgw" {
+  description = "Specify custom routes to one or more transit gateways."
+  type = map(object({
+    destination_cidr_block     = optional(string)
+    destination_prefix_list_id = optional(string)
+    transit_gateway_id         = string
+  }))
+  default = {}
+}
+
 variable "tags" {
   description = "Tags to apply to all resources."
   type        = map(string)
