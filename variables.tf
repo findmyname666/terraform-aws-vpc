@@ -112,6 +112,7 @@ variable "subnets" {
   - `assign_ipv6_cidr` = (Optional|bool) **Cannot set if `ipv6_cidrs` is set.** If true, it will calculate a /64 block from the IPv6 VPC CIDR to set in the subnets.
   - `ipv6_cidrs`       = (Optional|list(string)) **Cannot set if `assign_ipv6_cidr` is set.** List of IPv6 CIDRs to set to subnets. The subnet size must use a /64 prefix length. Count of CIDRs defined must match quantity of azs in `az_count`.
   - `name_prefix`      = (Optional|String) A string prefix to use for the name of your subnet and associated resources. Subnet type key name is used if omitted (aka private, public, transit_gateway). Example `name_prefix = "private"` for `var.subnets.private` is redundant.
+  - `routes`           = (optional|list(map(string)) List of maps. Each map represents **aws_route**. All **aws_route** attribute are supported for both destination and target arguments.
   - `tags`             = (Optional|map(string)) Tags to set on the subnet and associated resources.
 
   **Any private subnet type options:**
@@ -248,44 +249,6 @@ EOF
     error_message = "Any subnet type `name_prefix` must not contain \"/\"."
     condition     = alltrue([for _, v in var.subnets : !can(regex("/", try(v.name_prefix, "")))])
   }
-}
-
-variable "custom_route_to_tgw" {
-  description = <<-EOF
-    Add a custom route to a transit gateway in a subnet.
-    The subnet is determined based on a map key that matches the key
-    provided in the var.subnets variable. This allows you to define
-    the specific subnet where the custom route should be applied.
-
-  Example:
-  ```
-  subnets = {
-    # Dual-stack subnet
-    public = {
-      netmask                   = 24
-      assign_ipv6_cidr          = true
-      nat_gateway_configuration = "single_az"
-    }
-    # IPv4 only subnet
-    private = {
-      netmask                  = 24
-      connect_to_public_natgw  = true
-    }
-  }
-  custom_route_to_tgw = {
-    private = {
-      destination_cidr_block = "10.0.0.0/16"
-      transit_gateway_id     = "tgw-0282179847129898sd"
-    }
-  }
-  ```
-  EOF
-  type = map(object({
-    destination_cidr_block     = optional(string)
-    destination_prefix_list_id = optional(string)
-    transit_gateway_id         = string
-  }))
-  default = {}
 }
 
 variable "tags" {
